@@ -1,6 +1,7 @@
 # YAML Ain't Markup Language
 services:
   database:
+    container_name: "postgres-dev"
     image: "postgres:16.10-alpine3.22"
     env_file:
       - ../.env.development
