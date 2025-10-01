@@ -1,10 +1,8 @@
-import database from "infra/database";
+import orchestrator from "tests/orchestrator";
 
-beforeAll(cleanDatabase);
-
-async function cleanDatabase() {
-  await database.query("drop schema public cascade; create schema public;");
-}
+beforeAll(async () => {
+  await orchestrator.waitForAllProcesses();
+});
 
 test("Requisição Get para `api/v1/status` deverá retornar 200", async () => {
   const response = await fetch(`http://localhost:3000/api/v1/status`);
