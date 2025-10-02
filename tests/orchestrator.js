@@ -19,4 +19,6 @@ async function waitForAllProcesses() {
   }
 }
 
-export default { waitForAllProcesses };
+const orchestrator = { waitForAllProcesses };
+
+export default orchestrator;
