@@ -1,14 +1,9 @@
-const { default: database } = require("infra/database");
 const { default: orchestrator } = require("tests/orchestrator");
 
 beforeAll(async () => {
   await orchestrator.waitForAllProcesses();
-  await cleanDatabase();
+  await orchestrator.clearDatabase();
 });
-
-async function cleanDatabase() {
-  await database.query("drop schema public cascade; create schema public;");
-}
 
 describe("GET /api/v1/migrations", () => {
   describe("Anonymous user", () => {
