@@ -2,6 +2,7 @@ const {
   MethodNotAllowedError,
   InternalServerError,
   ValidationError,
+  NotFoundError,
 } = require("./errors");
 
 function noMatchHandler(req, res) {
@@ -14,7 +15,7 @@ function noMatchHandler(req, res) {
 }
 
 function onErrorHandler(error, req, res) {
-  if (error instanceof ValidationError) {
+  if (error instanceof ValidationError || error instanceof NotFoundError) {
     return res.status(error.statusCode).json(error);
   }
 

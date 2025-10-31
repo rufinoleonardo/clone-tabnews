@@ -72,3 +72,21 @@ export class MethodNotAllowedError extends Error {
     };
   }
 }
+
+export class NotFoundError extends Error {
+  constructor({ message, action }) {
+    super(message || "Registro não encontrado");
+    this.name = "NotFoundError";
+    (this.action = action || "Verifique os dados digitados."),
+      (this.statusCode = 400);
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      statusCode: this.statusCode,
+    };
+  }
+}
