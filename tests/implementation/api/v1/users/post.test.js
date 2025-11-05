@@ -1,3 +1,5 @@
+import password from "models/password";
+import user from "models/user";
 import orchestrator from "tests/orchestrator";
 import { version as uuidVersion } from "uuid";
 
@@ -10,24 +12,41 @@ beforeAll(async () => {
 describe("POST /api/v1/users", () => {
   describe("Anonymous user", () => {
     test("with unique and valid data", async () => {
+      const userObject = {
+        username: "leo_gostoso",
+        email: "Leo@teste.com",
+        password: "senhaAqui123",
+      };
+
       const response1 = await fetch(`http://localhost:3000/api/v1/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: "leo_gostoso",
-          email: "Leo@teste.com",
-          password: "senha123",
-        }),
+        body: JSON.stringify(userObject),
       });
 
       const response1Body = await response1.json();
+
+      const userInDatabase = await user.findOneByUsername("leo_gostoso");
+
+      const correctPasswordMatch = await password.comparePassword(
+        userObject.password,
+        userInDatabase.password,
+      );
+
+      const incorrectPasswordMatch = await password.comparePassword(
+        "senhaErrada",
+        userInDatabase.password,
+      );
+
+      expect(correctPasswordMatch).toBe(true);
+      expect(incorrectPasswordMatch).toBe(false);
 
       expect(response1.status).toBe(201);
       expect(response1Body).toEqual({
         id: response1Body.id,
         username: "leo_gostoso",
         email: "Leo@teste.com",
-        password: "senha123",
+        password: response1Body.password,
         created_at: response1Body.created_at,
         updated_at: response1Body.updated_at,
       });
