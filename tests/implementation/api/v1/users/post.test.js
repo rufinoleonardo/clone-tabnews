@@ -73,8 +73,8 @@ describe("POST /api/v1/users", () => {
       expect(response2.status).toBe(400);
       expect(response2Body).toEqual({
         name: "ValidationError",
-        message: "O email informado já consta na base de dados.",
-        action: "Utilize outro email.",
+        message: "O email informado já está em uso.",
+        action: "Utilize outro email para realizar a operação.",
         statusCode: 400,
       });
     });
@@ -95,8 +95,8 @@ describe("POST /api/v1/users", () => {
       expect(response3.status).toBe(400);
       expect(response3Body).toEqual({
         name: "ValidationError",
-        message: "O username já está em uso.",
-        action: "Por favor, tente outro username.",
+        message: "O username informado já está em uso.",
+        action: "Utilize outro username para realizar a operação.",
         statusCode: 400,
       });
     });

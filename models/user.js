@@ -32,6 +32,54 @@ async function create(userData) {
   return newUser;
 }
 
+async function updateUser(username, userInputValues) {
+  const foundUser = await findOneByUsername(username);
+  let updatedData = userInputValues;
+
+  if ("username" in userInputValues) {
+    await validateUniqueUsername(userInputValues.username);
+  }
+
+  if ("email" in userInputValues) {
+    await validateUniqueEmail(userInputValues.email);
+  }
+
+  if ("password" in userInputValues) {
+    const hashedPassword = await password.hashPasswordInObject(userInputValues);
+    updatedData = { ...updatedData, password: hashedPassword };
+  }
+
+  const userDataToUpdate = { ...foundUser, ...updatedData };
+
+  return await runUpdateQuery(userDataToUpdate);
+}
+
+async function runUpdateQuery(userDataToUpdate) {
+  const response = await database.query({
+    text: `
+      UPDATE
+        users
+      SET
+        username = $2,
+        email = $3,
+        password = $4,
+        updated_at = timezone('utc', now())
+      WHERE
+        id = $1
+      RETURNING
+        *
+      `,
+    values: [
+      userDataToUpdate.id,
+      userDataToUpdate.username,
+      userDataToUpdate.email,
+      userDataToUpdate.password,
+    ],
+  });
+
+  return response.rows[0];
+}
+
 async function findOneByUsername(username) {
   const response = await database.query({
     text: `
@@ -49,7 +97,7 @@ async function findOneByUsername(username) {
   if (!response.rows[0]) {
     throw new NotFoundError({
       message: "O username informado não foi localizado.",
-      action: "Verifique se o username foi digitado corretamente",
+      action: "Verifique se o username foi digitado corretamente.",
     });
   }
 
@@ -71,8 +119,8 @@ async function validateUniqueEmail(email) {
 
   if (emailSelect.rows.length > 0) {
     throw new ValidationError({
-      message: "O email informado já consta na base de dados.",
-      action: "Utilize outro email.",
+      message: "O email informado já está em uso.",
+      action: "Utilize outro email para realizar a operação.",
     });
   }
 }
@@ -92,8 +140,8 @@ async function validateUniqueUsername(username) {
 
   if (userSelect.rows.length > 0) {
     throw new ValidationError({
-      message: "O username já está em uso.",
-      action: "Por favor, tente outro username.",
+      message: "O username informado já está em uso.",
+      action: "Utilize outro username para realizar a operação.",
     });
   }
 }
@@ -101,6 +149,7 @@ async function validateUniqueUsername(username) {
 const user = {
   create,
   findOneByUsername,
+  updateUser,
 };
 
 export default user;
