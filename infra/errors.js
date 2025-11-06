@@ -40,8 +40,8 @@ export class ValidationError extends Error {
       cause: cause,
     });
     this.name = "ValidationError";
-    (this.action = action || "Verifique os dados e reenvie o formulário."),
-      (this.statusCode = 400);
+    this.statusCode = 400;
+    this.action = action || "Verifique os dados e reenvie o formulário.";
   }
 
   toJSON() {
@@ -78,7 +78,7 @@ export class NotFoundError extends Error {
     super(message || "Registro não encontrado");
     this.name = "NotFoundError";
     (this.action = action || "Verifique os dados digitados."),
-      (this.statusCode = 400);
+      (this.statusCode = 404);
   }
 
   toJSON() {
