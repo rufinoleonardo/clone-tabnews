@@ -8,14 +8,8 @@ beforeAll(async () => {
 
 describe("GET '/api/v1/users/[username]", () => {
   test("With exact matchcase", async () => {
-    await fetch(`http://localhost:3000/api/v1/users`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: "leo_gateenho",
-        email: "leo_gateenho@teste.com",
-        password: "1212leo",
-      }),
+    const user1 = await orchestrator.createUser({
+      username: "leo_gateenho",
     });
 
     const response = await fetch(
@@ -28,7 +22,7 @@ describe("GET '/api/v1/users/[username]", () => {
     expect(responseBody).toEqual({
       id: responseBody.id,
       username: "leo_gateenho",
-      email: "leo_gateenho@teste.com",
+      email: `${user1.email}`,
       password: responseBody.password,
       created_at: responseBody.created_at,
       updated_at: responseBody.updated_at,
@@ -36,14 +30,8 @@ describe("GET '/api/v1/users/[username]", () => {
   });
 
   test("With case missmatch", async () => {
-    await fetch(`http://localhost:3000/api/v1/users`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: "leo_maromba",
-        email: "leo_maromba@teste.com",
-        password: "1212leo",
-      }),
+    const user2 = await orchestrator.createUser({
+      username: "leo_maromba",
     });
 
     const response = await fetch(
@@ -56,7 +44,7 @@ describe("GET '/api/v1/users/[username]", () => {
     expect(responseBody2).toEqual({
       id: responseBody2.id,
       username: "leo_maromba",
-      email: "leo_maromba@teste.com",
+      email: `${user2.email}`,
       password: responseBody2.password,
       created_at: responseBody2.created_at,
       updated_at: responseBody2.updated_at,
@@ -64,15 +52,7 @@ describe("GET '/api/v1/users/[username]", () => {
   });
 
   test("With nonexistent username", async () => {
-    await fetch(`http://localhost:3000/api/v1/users`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: "higher_leo",
-        email: "higher_leo@teste.com",
-        password: "1212leo",
-      }),
-    });
+    await orchestrator.createUser();
 
     const response3 = await fetch(
       "http://localhost:3000/api/v1/users/higher_me",
