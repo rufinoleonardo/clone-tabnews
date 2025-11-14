@@ -104,6 +104,30 @@ async function findOneByUsername(username) {
   return response.rows[0];
 }
 
+async function findOneByEmail(email) {
+  const response = await database.query({
+    text: `
+    SELECT 
+      * 
+    FROM 
+      users
+    WHERE
+      LOWER(email) = LOWER($1)
+    LIMIT 1
+    `,
+    values: [email],
+  });
+
+  if (!response.rows[0]) {
+    throw new NotFoundError({
+      message: "O email informado não foi localizado.",
+      action: "Verifique se o email foi digitado corretamente.",
+    });
+  }
+
+  return response.rows[0];
+}
+
 async function validateUniqueEmail(email) {
   const emailSelect = await database.query({
     text: `
@@ -149,6 +173,7 @@ async function validateUniqueUsername(username) {
 const user = {
   create,
   findOneByUsername,
+  findOneByEmail,
   updateUser,
 };
 
