@@ -54,6 +54,26 @@ export class ValidationError extends Error {
   }
 }
 
+export class AuthenticationError extends Error {
+  constructor({ cause, message, action }) {
+    super(message || "Dados não conferem com a base de dados.", {
+      cause: cause,
+    });
+    this.name = "AuthenticationError";
+    this.statusCode = 401;
+    this.action = action || "Verifique os dados e reenvie o formulário.";
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      statusCode: this.statusCode,
+    };
+  }
+}
+
 export class MethodNotAllowedError extends Error {
   constructor() {
     super("Método não permitido para este endpoint");
