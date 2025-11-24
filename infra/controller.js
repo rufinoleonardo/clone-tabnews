@@ -18,11 +18,13 @@ function noMatchHandler(req, res) {
 }
 
 function onErrorHandler(error, req, res) {
-  if (
-    error instanceof ValidationError ||
-    error instanceof NotFoundError ||
-    error instanceof AuthenticationError
-  ) {
+  if (error instanceof ValidationError || error instanceof NotFoundError) {
+    return res.status(error.statusCode).json(error);
+  }
+
+  if (error instanceof AuthenticationError) {
+    clearSessionCookie(res);
+    console.log("Cleaning cookies.");
     return res.status(error.statusCode).json(error);
   }
 
