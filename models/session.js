@@ -104,6 +104,56 @@ async function renew(sessionId) {
   }
 }
 
+async function invalidateSession(sessionId) {
+  const expiresAt = calculateExpirationDate();
+  const renewedSession = await runUpdateQuery(sessionId, expiresAt);
+
+  return renewedSession.rows[0];
+
+  async function runUpdateQuery(sessionId, expiresAt) {
+    return await database.query({
+      text: `
+      UPDATE
+        sessions
+      SET
+        expires_at = $2,
+        updated_at = NOW()
+      WHERE
+        id = $1
+      RETURNING
+        *;
+      `,
+      values: [sessionId, expiresAt],
+    });
+  }
+}
+
+async function expireById(sessionId) {
+  const expiredSession = await runUpdateQuery(sessionId);
+
+  return expiredSession;
+
+  async function runUpdateQuery(sessionId) {
+    const queryResponse = await database.query({
+      text: `
+      UPDATE
+        sessions
+      SET
+        expires_at = expires_at - interval '1 year',
+        updated_at = NOW()
+      WHERE
+        id = $1
+      RETURNING
+        *
+      ;
+      `,
+      values: [sessionId],
+    });
+
+    return queryResponse.rows[0];
+  }
+}
+
 function calculateExpirationDate() {
   return new Date(Date.now() + EXPIRATION_IN_MILLISECONDS);
 }
@@ -114,6 +164,8 @@ const session = {
   findOneValidByToken,
   renew,
   findOneValidById,
+  invalidateSession,
+  expireById,
 };
 
 export default session;
