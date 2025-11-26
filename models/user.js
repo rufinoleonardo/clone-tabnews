@@ -7,25 +7,31 @@ async function create(userData) {
   await validateUniqueUsername(userData.username);
   const hashedPassword = await password.hashPasswordInObject(userData);
   const userWithHashedPassword = { ...userData, password: hashedPassword };
+  injectDefaultFeaturesInObject(userWithHashedPassword);
 
   async function runInsertQuery(userInputValues) {
     const createdUser = await database.query({
       text: `
       INSERT 
       INTO users 
-        (username, email, password) 
+        (username, email, password, features) 
       VALUES 
-        ($1, $2, $3)
+        ($1, $2, $3, $4)
       RETURNING *  
       `,
       values: [
         userInputValues.username,
         userInputValues.email,
         userInputValues.password,
+        userInputValues.features,
       ],
     });
 
     return createdUser.rows[0];
+  }
+
+  function injectDefaultFeaturesInObject(userInputValues) {
+    userInputValues.features = ["read:activation_token"];
   }
 
   const newUser = await runInsertQuery(userWithHashedPassword);

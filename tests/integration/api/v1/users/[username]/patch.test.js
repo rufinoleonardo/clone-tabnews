@@ -97,7 +97,7 @@ describe("PATCH '/api/v1/users/[username]", () => {
       username: "changed_username",
       email: userD1.email,
       password: respDBody.password,
-      features: [],
+      features: ["read:activation_token"],
       created_at: respDBody.created_at,
       updated_at: respDBody.updated_at,
     });
@@ -126,7 +126,7 @@ describe("PATCH '/api/v1/users/[username]", () => {
       username: userE1.username,
       email: "unique_email@email.com",
       password: respDBody.password,
-      features: [],
+      features: ["read:activation_token"],
       created_at: respDBody.created_at,
       updated_at: respDBody.updated_at,
     });
