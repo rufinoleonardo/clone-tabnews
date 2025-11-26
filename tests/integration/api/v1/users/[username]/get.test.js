@@ -24,6 +24,7 @@ describe("GET '/api/v1/users/[username]", () => {
       username: "leo_gateenho",
       email: `${user1.email}`,
       password: responseBody.password,
+      features: [],
       created_at: responseBody.created_at,
       updated_at: responseBody.updated_at,
     });
@@ -46,6 +47,7 @@ describe("GET '/api/v1/users/[username]", () => {
       username: "leo_maromba",
       email: `${user2.email}`,
       password: responseBody2.password,
+      features: [],
       created_at: responseBody2.created_at,
       updated_at: responseBody2.updated_at,
     });
