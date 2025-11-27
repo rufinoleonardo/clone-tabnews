@@ -1,3 +1,4 @@
+const { default: activation } = require("models/activation");
 const { default: orchestrator } = require("tests/orchestrator");
 
 beforeAll(async () => {
@@ -8,6 +9,8 @@ beforeAll(async () => {
 });
 
 describe("Use case: registration flow (all successful)", () => {
+  let userABody;
+
   test("A) Create user account", async () => {
     const userA = await fetch(`http://localhost:3000/api/v1/users`, {
       method: "POST",
@@ -19,7 +22,7 @@ describe("Use case: registration flow (all successful)", () => {
       }),
     });
 
-    const userABody = await userA.json();
+    userABody = await userA.json();
 
     expect(userA.status).toBe(201);
     expect(userABody).toEqual({
@@ -33,7 +36,19 @@ describe("Use case: registration flow (all successful)", () => {
     });
   });
 
-  test("B) Receive activation email", async () => {});
+  test("B) Receive activation email", async () => {
+    const lastEmail = await orchestrator.getLastEmail();
+
+    const activationToken = await activation.findOneByUserId(userABody.id);
+
+    expect(lastEmail.sender).toBe("<contato@rufinodev.com.br>");
+    expect(lastEmail.recipients[0]).toBe("<userA@email.com>");
+    expect(lastEmail.subject).toBe("Ative seu cadastro em RufinoDev");
+    expect(lastEmail.text).toContain("userA");
+    expect(lastEmail.text).toContain(activationToken.id);
+
+    console.log(lastEmail.text);
+  });
 
   test("C) Activate account", async () => {});
 
