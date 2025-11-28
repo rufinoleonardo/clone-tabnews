@@ -1,3 +1,4 @@
+const { default: webserver } = require("infra/webserver");
 const { default: activation } = require("models/activation");
 const { default: orchestrator } = require("tests/orchestrator");
 
@@ -39,15 +40,20 @@ describe("Use case: registration flow (all successful)", () => {
   test("B) Receive activation email", async () => {
     const lastEmail = await orchestrator.getLastEmail();
 
-    const activationToken = await activation.findOneByUserId(userABody.id);
-
     expect(lastEmail.sender).toBe("<contato@rufinodev.com.br>");
     expect(lastEmail.recipients[0]).toBe("<userA@email.com>");
     expect(lastEmail.subject).toBe("Ative seu cadastro em RufinoDev");
     expect(lastEmail.text).toContain("userA");
-    expect(lastEmail.text).toContain(activationToken.id);
 
-    console.log(lastEmail.text);
+    // Validating email's token
+    const regexResult = orchestrator.extractUUID(lastEmail.text);
+    const validToken = await activation.findValidToken(regexResult);
+
+    expect(lastEmail.text).toContain(
+      `${webserver.origin}/cadastro/activation/${validToken.id}`,
+    );
+    expect(validToken.user_id).toBe(userABody.id);
+    expect(validToken.used_at).toBe(null);
   });
 
   test("C) Activate account", async () => {});

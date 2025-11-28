@@ -42,7 +42,7 @@ RufinoDev`,
   });
 }
 
-async function findOneByUserId(userId) {
+async function findValidToken(token) {
   const results = await database.query({
     text: `
     SELECT
@@ -50,12 +50,13 @@ async function findOneByUserId(userId) {
     FROM
       user_activation_tokens
     WHERE
-      user_id = $1
+      id = $1
+      AND expires_at > NOW()
+      AND used_at IS NULL
     LIMIT
       1
-    ;
     `,
-    values: [userId],
+    values: [token],
   });
 
   return results.rows[0];
@@ -64,7 +65,7 @@ async function findOneByUserId(userId) {
 const activation = {
   sendEmailToUser,
   create,
-  findOneByUserId,
+  findValidToken,
 };
 
 export default activation;
