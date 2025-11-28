@@ -1,6 +1,8 @@
 import database from "infra/database";
 import email from "infra/email";
+import { NotFoundError } from "infra/errors";
 import webserver from "infra/webserver";
+import user from "models/user";
 
 const EXPIRATION_IN_MILLISECONDS = 1000 * 60 * 15; // 15s
 
@@ -62,10 +64,49 @@ async function findValidToken(token) {
   return results.rows[0];
 }
 
+async function markTokenAsUsed(tokenId) {
+  const updatedToken = await runUpdateQuery(tokenId);
+
+  return updatedToken;
+
+  async function runUpdateQuery(tokenId) {
+    const results = await database.query({
+      text: `
+      UPDATE
+        user_activation_tokens
+      SET
+        used_at = NOW(),
+        updated_at = NOW()
+      WHERE
+        id = $1
+      RETURNING
+        *
+      ;
+      `,
+      values: [tokenId],
+    });
+
+    if (results.rows.lenth == 0) {
+      throw new NotFoundError({
+        message: "Token não localizado. Nenhum registro foi atualizado.",
+      });
+    }
+
+    return results.rows[0];
+  }
+}
+
+async function activateUserByUserId(userId) {
+  const activatedUser = await user.setFeatures(userId, ["create:session"]);
+  return activatedUser;
+}
+
 const activation = {
   sendEmailToUser,
   create,
   findValidToken,
+  markTokenAsUsed,
+  activateUserByUserId,
 };
 
 export default activation;

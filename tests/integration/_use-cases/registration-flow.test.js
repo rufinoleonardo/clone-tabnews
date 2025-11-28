@@ -1,5 +1,6 @@
 const { default: webserver } = require("infra/webserver");
 const { default: activation } = require("models/activation");
+const { default: user } = require("models/user");
 const { default: orchestrator } = require("tests/orchestrator");
 
 beforeAll(async () => {
@@ -11,6 +12,7 @@ beforeAll(async () => {
 
 describe("Use case: registration flow (all successful)", () => {
   let userABody;
+  let validToken;
 
   test("A) Create user account", async () => {
     const userA = await fetch(`http://localhost:3000/api/v1/users`, {
@@ -47,7 +49,7 @@ describe("Use case: registration flow (all successful)", () => {
 
     // Validating email's token
     const regexResult = orchestrator.extractUUID(lastEmail.text);
-    const validToken = await activation.findValidToken(regexResult);
+    validToken = await activation.findValidToken(regexResult);
 
     expect(lastEmail.text).toContain(
       `${webserver.origin}/cadastro/activation/${validToken.id}`,
@@ -56,7 +58,21 @@ describe("Use case: registration flow (all successful)", () => {
     expect(validToken.used_at).toBe(null);
   });
 
-  test("C) Activate account", async () => {});
+  test("C) Activate account", async () => {
+    const responseC = await fetch(
+      `http://localhost:3000/api/v1/activations/${validToken.id}`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    const responseCBody = await responseC.json();
+
+    expect(Date.parse(responseCBody.used_at)).not.toBeNaN();
+
+    const activatedUser = await user.findOneByUsername("userA");
+    expect(activatedUser.features).toEqual(["create:session"]);
+  });
 
   test("D) Login", async () => {});
 
