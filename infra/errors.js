@@ -74,6 +74,27 @@ export class AuthenticationError extends Error {
   }
 }
 
+export class ForbiddenError extends Error {
+  constructor({ cause, message, action }) {
+    super(message || "Você não possui permissão para executar esta ação.", {
+      cause: cause,
+    });
+    this.name = "ForbiddenError";
+    this.statusCode = 403;
+    this.action =
+      action || "Verifique as permissões necessárias para continuar.";
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      statusCode: this.statusCode,
+    };
+  }
+}
+
 export class MethodNotAllowedError extends Error {
   constructor() {
     super("Método não permitido para este endpoint");

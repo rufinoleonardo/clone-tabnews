@@ -66,6 +66,8 @@ describe("Use case: registration flow (all successful)", () => {
       },
     );
 
+    expect(responseC.status).toBe(200);
+
     const responseCBody = await responseC.json();
 
     expect(Date.parse(responseCBody.used_at)).not.toBeNaN();
@@ -74,7 +76,21 @@ describe("Use case: registration flow (all successful)", () => {
     expect(activatedUser.features).toEqual(["create:session"]);
   });
 
-  test("D) Login", async () => {});
+  test("D) Login", async () => {
+    const sessionD = await fetch(`http://localhost:3000/api/v1/sessions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "userA@email.com",
+        password: "userA",
+      }),
+    });
+
+    expect(sessionD.status).toBe(201);
+
+    const sessionDBody = await sessionD.json();
+    expect(sessionDBody.user_id).toBe(userABody.id);
+  });
 
   test("E) Get user informations", async () => {});
 });
