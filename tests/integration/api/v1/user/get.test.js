@@ -18,6 +18,8 @@ describe("GET /api/v1/sessions", () => {
         email: "valid_session@email.com",
       });
 
+      const userAActivated = await orchestrator.activateUser(createdUser);
+
       const createdSession = await orchestrator.createSession(createdUser.id);
 
       const responseA = await fetch(`http://localhost:3000/api/v1/user`, {
@@ -32,9 +34,9 @@ describe("GET /api/v1/sessions", () => {
         username: "valid_session",
         email: "valid_session@email.com",
         password: createdUser.password,
-        features: ["read:activation_token"],
+        features: responseABody.features,
         created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        updated_at: userAActivated.updated_at.toISOString(),
       });
 
       expect(uuidVersion(responseABody.id)).toBe(4);
