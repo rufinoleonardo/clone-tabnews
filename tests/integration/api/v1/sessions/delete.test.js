@@ -67,6 +67,8 @@ describe("DELETE /api/v1/sessions", () => {
         email: "valid_session@email.com",
       });
 
+      await orchestrator.activateUser(createdUser);
+
       const createdSession = await orchestrator.createSession(createdUser.id);
 
       const responseC = await fetch(`http://localhost:3000/api/v1/sessions`, {
@@ -118,16 +120,16 @@ describe("DELETE /api/v1/sessions", () => {
           },
         },
       );
-
-      expect(doubleCheckResponse.status).toBe(401);
+      console.log(doubleCheckResponse.context);
+      expect(doubleCheckResponse.status).toBe(403);
 
       const doubleCheckResponseBody = await doubleCheckResponse.json();
 
       expect(doubleCheckResponseBody).toEqual({
-        name: "AuthenticationError",
-        message: "Usuário não possui sessão ativa.",
-        action: "Verifique se o usuário está logado e tente novamente",
-        statusCode: 401,
+        name: "ForbiddenError",
+        message: "Você não possui permissão para esta ação.",
+        action: "Verifique se você possui acesso à feature 'read:session'",
+        statusCode: 403,
       });
     });
   });
