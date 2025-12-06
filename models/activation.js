@@ -1,8 +1,9 @@
 import database from "infra/database";
 import email from "infra/email";
-import { NotFoundError } from "infra/errors";
+import { ForbiddenError, NotFoundError } from "infra/errors";
 import webserver from "infra/webserver";
 import user from "models/user";
+import authorization from "./authorization";
 
 const EXPIRATION_IN_MILLISECONDS = 1000 * 60 * 15; // 15s
 
@@ -61,6 +62,14 @@ async function findValidToken(token) {
     values: [token],
   });
 
+  if (results.rows.length == 0) {
+    console.log("findValidToken >  if (results.rows.lenth == 0)");
+    throw new NotFoundError({
+      message: "Token inválido.",
+      action: "Entre em contato com o suporte",
+    });
+  }
+
   return results.rows[0];
 }
 
@@ -97,6 +106,15 @@ async function markTokenAsUsed(tokenId) {
 }
 
 async function activateUserByUserId(userId) {
+  const userResponse = await user.findOneById(userId);
+
+  if (!authorization.can(userResponse, "read:activation_token")) {
+    throw new ForbiddenError({
+      message: "Você não pode mais utilizar tokens de ativação.",
+      action: "Caso acredite seja um engano, contatar o suporte",
+    });
+  }
+
   const activatedUser = await user.setFeatures(userId, [
     "create:session",
     "read:session",
@@ -110,6 +128,7 @@ const activation = {
   findValidToken,
   markTokenAsUsed,
   activateUserByUserId,
+  EXPIRATION_IN_MILLISECONDS,
 };
 
 export default activation;
