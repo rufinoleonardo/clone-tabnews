@@ -58,7 +58,7 @@ describe("PATCH '/api/v1/users/[username]", () => {
       });
     });
 
-    test("B) With already existing 'username'", async () => {
+    test("B) With duplicated 'username'", async () => {
       const userB1 = await orchestrator.createUser();
       const activatedUserB1 = await orchestrator.activateUser(userB1);
       const sessionUserB1 = await orchestrator.createSession(
@@ -68,10 +68,10 @@ describe("PATCH '/api/v1/users/[username]", () => {
       const userB2 = await orchestrator.createUser();
 
       const response2 = await fetch(
-        `http://localhost:3000/api/v1/users/${userB2.username}`,
+        `http://localhost:3000/api/v1/users/${userB1.username}`,
         {
           method: "PATCH",
-          body: JSON.stringify({ username: userB1.username }),
+          body: JSON.stringify({ username: userB2.username }),
           headers: { Cookie: `session_id=${sessionUserB1.token}` },
         },
       );
@@ -219,6 +219,34 @@ describe("PATCH '/api/v1/users/[username]", () => {
       expect(respDBody.updated_at > respDBody.created_at).toBe(true);
       expect(correctPasswordMatch).toBe(true);
       expect(incorrectPasswordMatch).toBe(false);
+    });
+
+    test("G) With UserG targeting userH", async () => {
+      const userG = await orchestrator.createUser();
+      const activatedUserG = await orchestrator.activateUser(userG);
+      const sessionUserG = await orchestrator.createSession(activatedUserG.id);
+
+      const userH = await orchestrator.createUser();
+
+      const response2 = await fetch(
+        `http://localhost:3000/api/v1/users/${userH.username}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ username: "UserZ" }),
+          headers: { Cookie: `session_id=${sessionUserG.token}` },
+        },
+      );
+
+      const responseBody2 = await response2.json();
+
+      expect(response2.status).toBe(403);
+      expect(responseBody2).toEqual({
+        action:
+          "Verifique se você possui as features necessárias para alterar outro usuário.",
+        message: "Você não possui autorização para modificar outro usuário.",
+        name: "ForbiddenError",
+        statusCode: 403,
+      });
     });
   });
 });
