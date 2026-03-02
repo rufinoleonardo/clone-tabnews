@@ -35,7 +35,7 @@ describe("PATCH '/api/v1/users/[username]", () => {
     });
   });
 
-  describe("with logged user", () => {
+  describe("Deufault user", () => {
     test("A) With nonexisting 'username'", async () => {
       const userA = await orchestrator.createUser();
       const activatedUserA = await orchestrator.activateUser(userA);
@@ -247,6 +247,49 @@ describe("PATCH '/api/v1/users/[username]", () => {
         name: "ForbiddenError",
         statusCode: 403,
       });
+    });
+  });
+
+  describe("Privileged user", () => {
+    test("J) With 'update:user:others' targeting defaultUser", async () => {
+      const privilegedUser = await orchestrator.createUser();
+      const activatedPrivilegedUser =
+        await orchestrator.activateUser(privilegedUser);
+
+      await orchestrator.addFeaturesToUser(privilegedUser, [
+        "update:user:others",
+      ]);
+
+      const sessionPrivilegedUser = await orchestrator.createSession(
+        activatedPrivilegedUser.id,
+      );
+
+      const defaultUser = await orchestrator.createUser();
+
+      const response2 = await fetch(
+        `http://localhost:3000/api/v1/users/${defaultUser.username}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ username: "UpdatedByPrivilegedUser" }),
+          headers: { Cookie: `session_id=${sessionPrivilegedUser.token}` },
+        },
+      );
+
+      const responseBody2 = await response2.json();
+
+      expect(response2.status).toBe(200);
+
+      expect(responseBody2).toEqual({
+        id: defaultUser.id,
+        username: "UpdatedByPrivilegedUser",
+        email: defaultUser.email,
+        password: responseBody2.password,
+        features: responseBody2.features,
+        created_at: responseBody2.created_at,
+        updated_at: responseBody2.updated_at,
+      });
+
+      expect(responseBody2.updated_at > responseBody2.created_at).toBe(true);
     });
   });
 });
