@@ -8,7 +8,7 @@ beforeAll(async () => {
 
 describe("GET '/api/v1/users/[username]", () => {
   test("With exact matchcase", async () => {
-    const user1 = await orchestrator.createUser({
+    await orchestrator.createUser({
       username: "leo_gateenho",
     });
 
@@ -22,8 +22,6 @@ describe("GET '/api/v1/users/[username]", () => {
     expect(responseBody).toEqual({
       id: responseBody.id,
       username: "leo_gateenho",
-      email: `${user1.email}`,
-      password: responseBody.password,
       features: ["read:activation_token"],
       created_at: responseBody.created_at,
       updated_at: responseBody.updated_at,
@@ -31,7 +29,7 @@ describe("GET '/api/v1/users/[username]", () => {
   });
 
   test("With case missmatch", async () => {
-    const user2 = await orchestrator.createUser({
+    await orchestrator.createUser({
       username: "leo_maromba",
     });
 
@@ -45,8 +43,6 @@ describe("GET '/api/v1/users/[username]", () => {
     expect(responseBody2).toEqual({
       id: responseBody2.id,
       username: "leo_maromba",
-      email: `${user2.email}`,
-      password: responseBody2.password,
       features: ["read:activation_token"],
       created_at: responseBody2.created_at,
       updated_at: responseBody2.updated_at,

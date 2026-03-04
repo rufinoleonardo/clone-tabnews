@@ -1,4 +1,3 @@
-const { default: password } = require("models/password");
 const { default: orchestrator } = require("tests/orchestrator");
 
 beforeAll(async () => {
@@ -141,8 +140,6 @@ describe("PATCH '/api/v1/users/[username]", () => {
       expect(respDBody).toEqual({
         id: respDBody.id,
         username: "changed_username",
-        email: userD1.email,
-        password: respDBody.password,
         features: ["create:session", "read:session", "update:user"],
         created_at: respDBody.created_at,
         updated_at: respDBody.updated_at,
@@ -175,8 +172,6 @@ describe("PATCH '/api/v1/users/[username]", () => {
       expect(respDBody).toEqual({
         id: respDBody.id,
         username: userE1.username,
-        email: "unique_email@email.com",
-        password: respDBody.password,
         features: ["create:session", "read:session", "update:user"],
         created_at: respDBody.created_at,
         updated_at: respDBody.updated_at,
@@ -185,46 +180,10 @@ describe("PATCH '/api/v1/users/[username]", () => {
       expect(respDBody.updated_at > respDBody.created_at).toBe(true);
     });
 
-    test("F) With new 'password'", async () => {
-      const userF1 = await orchestrator.createUser();
-      const activatedUserF1 = await orchestrator.activateUser(userF1);
-      const sessionUserF1 = await orchestrator.createSession(
-        activatedUserF1.id,
-      );
-
-      const respD = await fetch(
-        `http://localhost:3000/api/v1/users/${userF1.username}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            password: "newpassword",
-          }),
-          headers: { Cookie: `session_id=${sessionUserF1.token}` },
-        },
-      );
-
-      const respDBody = await respD.json();
-
-      const correctPasswordMatch = await password.comparePassword(
-        "newpassword",
-        respDBody.password,
-      );
-
-      const incorrectPasswordMatch = await password.comparePassword(
-        "validPassword",
-        respDBody.password,
-      );
-
-      expect(respD.status).toBe(200);
-      expect(respDBody.updated_at > respDBody.created_at).toBe(true);
-      expect(correctPasswordMatch).toBe(true);
-      expect(incorrectPasswordMatch).toBe(false);
-    });
-
-    test("G) With UserG targeting userH", async () => {
-      const userG = await orchestrator.createUser();
-      const activatedUserG = await orchestrator.activateUser(userG);
-      const sessionUserG = await orchestrator.createSession(activatedUserG.id);
+    test("F) With UserF targeting userH", async () => {
+      const userF = await orchestrator.createUser();
+      const activatedUserF = await orchestrator.activateUser(userF);
+      const sessionUserF = await orchestrator.createSession(activatedUserF.id);
 
       const userH = await orchestrator.createUser();
 
@@ -233,7 +192,7 @@ describe("PATCH '/api/v1/users/[username]", () => {
         {
           method: "PATCH",
           body: JSON.stringify({ username: "UserZ" }),
-          headers: { Cookie: `session_id=${sessionUserG.token}` },
+          headers: { Cookie: `session_id=${sessionUserF.token}` },
         },
       );
 
@@ -282,8 +241,6 @@ describe("PATCH '/api/v1/users/[username]", () => {
       expect(responseBody2).toEqual({
         id: defaultUser.id,
         username: "UpdatedByPrivilegedUser",
-        email: defaultUser.email,
-        password: responseBody2.password,
         features: responseBody2.features,
         created_at: responseBody2.created_at,
         updated_at: responseBody2.updated_at,

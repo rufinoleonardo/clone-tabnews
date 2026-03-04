@@ -120,7 +120,7 @@ describe("DELETE /api/v1/sessions", () => {
           },
         },
       );
-      console.log(doubleCheckResponse.context);
+
       expect(doubleCheckResponse.status).toBe(403);
 
       const doubleCheckResponseBody = await doubleCheckResponse.json();
