@@ -32,8 +32,6 @@ describe("Use case: registration flow (all successful)", () => {
     expect(userABody).toEqual({
       id: userABody.id,
       username: "userA",
-      email: "userA@email.com",
-      password: userABody.password,
       features: ["read:activation_token"],
       created_at: userABody.created_at,
       updated_at: userABody.updated_at,
