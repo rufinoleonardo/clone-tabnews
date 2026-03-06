@@ -1,6 +1,6 @@
 import database from "infra/database";
 import email from "infra/email";
-import { ForbiddenError, NotFoundError } from "infra/errors";
+import { ForbiddenError, NotFoundError, ServiceError } from "infra/errors";
 import webserver from "infra/webserver";
 import user from "models/user";
 import authorization from "./authorization";
@@ -32,7 +32,7 @@ async function create(userId) {
 }
 
 async function sendEmailToUser(user, activationToken) {
-  await email.send({
+  const mailOptions = {
     from: "RufinoDev <contato@rufinodev.com.br",
     to: user.email,
     subject: "Ative seu cadastro em RufinoDev",
@@ -42,7 +42,18 @@ ${webserver.origin}/cadastro/activation/${activationToken.id}
     
 Atenciosamente,
 RufinoDev`,
-  });
+  };
+
+  try {
+    await email.send(mailOptions);
+  } catch (error) {
+    throw new ServiceError({
+      message: "Não foi possível enviar o email.",
+      cause: error,
+      action: "Verifique se o serviço de email está disponível.",
+      context: mailOptions,
+    });
+  }
 }
 
 async function findValidToken(token) {
