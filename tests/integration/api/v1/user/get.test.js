@@ -18,6 +18,8 @@ describe("GET /api/v1/sessions", () => {
         email: "valid_session@email.com",
       });
 
+      const activatedUserA = await orchestrator.activateUser(createdUser);
+
       const createdSession = await orchestrator.createSession(createdUser.id);
 
       const responseA = await fetch(`http://localhost:3000/api/v1/user`, {
@@ -31,9 +33,9 @@ describe("GET /api/v1/sessions", () => {
         id: createdUser.id,
         username: "valid_session",
         email: "valid_session@email.com",
-        password: createdUser.password,
+        features: ["create:session", "read:session", "update:user"],
         created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        updated_at: activatedUserA.updated_at.toISOString(),
       });
 
       expect(uuidVersion(responseABody.id)).toBe(4);
@@ -123,6 +125,8 @@ describe("GET /api/v1/sessions", () => {
         username: "userDWithValidSession",
       });
 
+      await orchestrator.activateUser(userD);
+
       const sessionD = await orchestrator.createSession(userD.id);
 
       jest.useRealTimers();
@@ -165,6 +169,23 @@ describe("GET /api/v1/sessions", () => {
 
       expect(renewedSessionD.expires_at > sessionD.expires_at).toBe(true);
       expect(renewedSessionD.updated_at > sessionD.updated_at).toBe(true);
+    });
+  });
+
+  describe("Anonymous user", () => {
+    test("A) Retrieving the endpoint", async () => {
+      const userA = await fetch(`http://localhost:3000/api/v1/user`);
+
+      expect(userA.status).toBe(403);
+
+      const userABody = await userA.json();
+
+      expect(userABody).toEqual({
+        name: "ForbiddenError",
+        message: "Você não possui permissão para esta ação.",
+        action: "Verifique se você possui acesso à feature 'read:session'",
+        statusCode: 403,
+      });
     });
   });
 });
